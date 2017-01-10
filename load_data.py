@@ -137,11 +137,13 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
 
     for maskfile in fnmatch.filter(filenames, 'Tumor_*_Mask.tif'):
       imagefile = maskfile[:-9] + '.tif'
+      print imagefile
 
       mask  = openslide.OpenSlide(data_dir + 'training/' + maskfile)
       image = openslide.OpenSlide(data_dir + 'training/' + imagefile)
 
       if mask.level_dimensions[2] != image.level_dimensions[2]:
+        print mask.level_dimensions[2], image.level_dimensions[2]
         print ("Image and Mask dimensions are not equal for " + imagefile)
 
       (w, h) = mask.level_dimensions[2]

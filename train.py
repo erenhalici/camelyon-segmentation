@@ -20,7 +20,12 @@ parser.add_argument('--test-interval', default=10000, type=int, help='Test Accur
 
 args = parser.parse_args()
 
-data_set = read_data_sets(args.data_dir, args.start_step*args.batch_size)
+num_input_layers = 3
+num_output_layers = 1
+width = 512
+height = 512
+
+data_set = read_data_sets(width, height, args.data_dir, args.start_step*args.batch_size)
 
 print("Training Data Size: {}".format(data_set.train.num_samples))
 # print("Training InImage Shape: {}".format(data_set.train.inimages.shape))
@@ -33,10 +38,7 @@ print("Training Data Size: {}".format(data_set.train.num_samples))
 # width = data_set.train.inimages.shape[1]
 # height = data_set.train.inimages.shape[2]
 
-num_input_layers = 3
-num_output_layers = 1
-width = 512
-height = 512
+
 
 model = Model(width, height, num_input_layers, num_output_layers, args.filter_count, args.layer_count, args.learning_rate)
 

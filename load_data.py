@@ -5,7 +5,10 @@ import fnmatch
 import os
 
 class DataSet(object):
-  def __init__(self, inimages, outimages, num_samples):
+  def __init__(self, width, height, inimages, outimages, num_samples):
+    self._width  = width
+    self._height = height
+
     self._num_samples = num_samples * 8
 
     self._inimages = inimages
@@ -56,13 +59,13 @@ class DataSet(object):
       return np.fliplr(np.rot90(image))
   def load_inimage(self, image_data):
     (image, i, j) = image_data
-    return np.array(image.read_region((i*512, j*512), 2, (512, 512)))[:,:,0:3]
+    return np.array(image.read_region((i, j), 2, (self._width, self._height)))[:,:,0:3]
   def load_outimage(self, image_data):
     if image_data == None:
-      return np.zeros([512,512,1])
+      return np.zeros([self._width,self._height,1])
     else:
       (image, i, j) = image_data
-      return np.array(image.read_region((i*512, j*512), 2, (512, 512)))[:,:,0].reshape([512,512,1])
+      return np.array(image.read_region((i, j), 2, (self._width, self._height)))[:,:,0].reshape([self._width,self._height,1])
   def get_inimage_at_index(self, index):
     return self.augment_image(self.load_inimage(self._inimages[index/8]), index)
   def get_outimage_at_index(self, index):
@@ -102,7 +105,18 @@ class DataSet(object):
 
     return inimages, outimages
 
-def read_data_sets(data_dir, load_train=True, load_test=True, start_step=0):
+def filter_inimage(width, height, image, i, j):
+  im = np.array(image.read_region((i, j), 2, (width, height)))[:,:,0:3]
+  avg = np.sum(im)/width/height/3
+  return avg
+
+def filter_outimage(width, height, image, i, j):
+  im = np.array(image.read_region((i, j), 2, (width, height)))[:,:,0]
+  avg = np.sum(im)/width/height
+  return avg
+
+
+def read_data_sets(width, height, data_dir, load_train=True, load_test=True, start_step=0):
   class DataSets(object):
     pass
   data_sets = DataSets()
@@ -115,10 +129,11 @@ def read_data_sets(data_dir, load_train=True, load_test=True, start_step=0):
       image = openslide.OpenSlide(data_dir + 'training/' + imagefile)
       (w, h) = image.level_dimensions[2]
 
-      for i in range(w / 512):
-        for j in range(h / 512):
-          inimages.append((image, i*512, j*512))
+      for i in range(w / width):
+        for j in range(h / height):
+          inimages.append((image, i*width, j*height))
           outimages.append(None)
+          # filter_inimage(width, height, image, i*width, j*height)
 
     for maskfile in fnmatch.filter(filenames, 'Tumor_*_Mask.tif'):
       imagefile = maskfile[:-9] + '.tif'
@@ -126,15 +141,18 @@ def read_data_sets(data_dir, load_train=True, load_test=True, start_step=0):
       mask  = openslide.OpenSlide(data_dir + 'training/' + maskfile)
       image = openslide.OpenSlide(data_dir + 'training/' + imagefile)
 
-      if mask.level_dimensions[2] == image.level_dimensions[2]:
+      if mask.level_dimensions[2] != image.level_dimensions[2]:
         print ("Image and Mask dimensions are not equal for " + imagefile)
 
       (w, h) = mask.level_dimensions[2]
 
-      for i in range(w / 512):
-        for j in range(h / 512):
-          inimages.append((image, i*512, j*512))
-          outimages.append((mask, i*512, j*512))
+      for i in range(w / width):
+        for j in range(h / height):
+          inimages.append((image, i*width, j*height))
+          outimages.append((mask, i*width, j*height))
+          avg = filter_outimage(width, height, mask, i*width, j*height)
+          if avg > 0:
+            print avg, filter_inimage(width, height, image, i*width, j*height)
 
   num_samples = len(inimages)
   TEST_SIZE = 32
@@ -145,9 +163,9 @@ def read_data_sets(data_dir, load_train=True, load_test=True, start_step=0):
   train_inimages = inimages[:-TEST_SIZE]
   train_outimages = outimages[:-TEST_SIZE]
 
-  data_sets.train = DataSet(train_inimages, train_outimages, num_samples - TEST_SIZE)
+  data_sets.train = DataSet(width, height, train_inimages, train_outimages, num_samples - TEST_SIZE)
   data_sets.train.set_start_step(start_step)
 
-  data_sets.test  = DataSet(test_inimages,  test_outimages, TEST_SIZE)
+  data_sets.test  = DataSet(width, height, test_inimages,  test_outimages, TEST_SIZE)
 
   return data_sets

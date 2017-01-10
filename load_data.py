@@ -126,7 +126,7 @@ def read_data_sets(data_dir, load_train=True, load_test=True, start_step=0):
       mask  = openslide.OpenSlide(data_dir + 'training/' + maskfile)
       image = openslide.OpenSlide(data_dir + 'training/' + imagefile)
 
-      assert mask.level_dimensions[2] == image.level_dimensions[2], "Image and Mask dimensions are not equal"
+      assert mask.level_dimensions[2] == image.level_dimensions[2], "Image and Mask dimensions are not equal for " + imagefile
 
       (w, h) = mask.level_dimensions[2]
 

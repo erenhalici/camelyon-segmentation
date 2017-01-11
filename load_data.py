@@ -108,12 +108,12 @@ class DataSet(object):
 def filter_inimage(width, height, image, i, j):
   im = np.array(image.read_region((i, j), 2, (width, height)))[:,:,0:3]
   avg = np.sum(im)/width/height/3
-  return avg
+  return avg < 220
 
 def filter_outimage(width, height, image, i, j):
   im = np.array(image.read_region((i, j), 2, (width, height)))[:,:,0]
   avg = np.sum(im)/width/height
-  return avg
+  return avg > 0.0
 
 
 def read_data_sets(width, height, data_dir, load_train=True, load_test=True, start_step=0):
@@ -124,17 +124,12 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
   inimages  = []
   outimages = []
 
+  total_count = 0
+  added_count = 0
+  metastasis_count = 0
+  missed_metastasis_count = 0
+
   for root, dirnames, filenames in os.walk(data_dir + 'training/'):
-    for imagefile in fnmatch.filter(filenames, 'Normal_*.tif'):
-      image = openslide.OpenSlide(data_dir + 'training/' + imagefile)
-      (w, h) = image.level_dimensions[2]
-
-      for i in range(w / width):
-        for j in range(h / height):
-          inimages.append((image, i*width, j*height))
-          outimages.append(None)
-          # filter_inimage(width, height, image, i*width, j*height)
-
     for maskfile in fnmatch.filter(filenames, 'Tumor_*_Mask.tif'):
       imagefile = maskfile[:-9] + '.tif'
       print imagefile
@@ -142,19 +137,41 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
       mask  = openslide.OpenSlide(data_dir + 'training/' + maskfile)
       image = openslide.OpenSlide(data_dir + 'training/' + imagefile)
 
-      if mask.level_dimensions[2] != image.level_dimensions[2]:
-        print mask.level_dimensions[2], image.level_dimensions[2]
-        print ("Image and Mask dimensions are not equal for " + imagefile)
+      assert mask.level_dimensions[2] == image.level_dimensions[2], "Image and Mask dimensions are not equal for " + imagefile
 
       (w, h) = mask.level_dimensions[2]
 
       for i in range(w / width):
         for j in range(h / height):
-          inimages.append((image, i*width, j*height))
-          outimages.append((mask, i*width, j*height))
-          avg = filter_outimage(width, height, mask, i*width, j*height)
-          if avg > 0:
-            print avg, filter_inimage(width, height, image, i*width, j*height)
+          if filter_inimage(width, height, image, i*width*4, j*height*4):
+            inimages.append((image, i*width*4, j*height*4))
+            outimages.append((mask, i*width*4, j*height*4))
+            added_count += 1
+            if filter_outimage(width, height, mask, i*width*4, j*height*4):
+              metastasis_count += 1
+          else:
+            if filter_outimage(width, height, mask, i*width*4, j*height*4):
+              missed_metastasis_count += 1
+          total_count += 1
+
+      print "Total Count: {}, Added Count: {}, Metastasis Count: {}, Missed Metastasis Count: {}".format(total_count, added_count, metastasis_count, missed_metastasis_count)
+
+      for imagefile in fnmatch.filter(filenames, 'Normal_*.tif'):
+        print imagefile
+
+        image = openslide.OpenSlide(data_dir + 'training/' + imagefile)
+        (w, h) = image.level_dimensions[2]
+
+        for i in range(w / width):
+          for j in range(h / height):
+            if filter_inimage(width, height, image, i*width*4, j*height*4):
+              inimages.append((image, i*width*4, j*height*4))
+              outimages.append(None)
+              added_count += 1
+            total_count += 1
+
+        print "Total Count: {}, Added Count: {}, Metastasis Count: {}, Missed Metastasis Count: {}".format(total_count, added_count, metastasis_count, missed_metastasis_count)
+
 
   num_samples = len(inimages)
   TEST_SIZE = 32

@@ -38,9 +38,7 @@ class DataSet(object):
     return [self.get_outimage_at_index(index*8) for index in range(self._num_samples/8)]
   def epoch(self):
     return self._epochs_completed + self._index_in_epoch*1.0/self._num_samples
-  def augment_image(self, image, index):
-    i = index%8
-
+  def augment_image(self, image, i):
     if i == 0:
       return np.rot90(image)
     elif i == 1:
@@ -58,18 +56,18 @@ class DataSet(object):
     elif i == 7:
       return np.fliplr(np.rot90(image))
   def load_inimage(self, image_data):
-    (image, i, j) = image_data
-    return np.array(image.read_region((i, j), 2, (self._width, self._height)))[:,:,0:3]
+    (image, i, j, k) = image_data
+    return self.augment_image(np.array(image.read_region((i, j), 2, (self._width, self._height)))[:,:,0:3], k)
   def load_outimage(self, image_data):
     if image_data == None:
       return np.zeros([self._width,self._height,1])
     else:
-      (image, i, j) = image_data
-      return np.array(image.read_region((i, j), 2, (self._width, self._height)))[:,:,0].reshape([self._width,self._height,1])
+      (image, i, j, k) = image_data
+      return self.augment_image(np.array(image.read_region((i, j), 2, (self._width, self._height)))[:,:,0].reshape([self._width,self._height,1]), k)
   def get_inimage_at_index(self, index):
-    return self.augment_image(self.load_inimage(self._inimages[index/8]), index)
+    return self.load_inimage(self._inimages[index/8])
   def get_outimage_at_index(self, index):
-    return self.augment_image(self.load_outimage(self._outimages[index/8]), index)
+    return self.load_outimage(self._outimages[index/8])
   def set_start_step(self, start_step):
     self._index_in_epoch = start_step
     if self._index_in_epoch > self._num_samples:
@@ -144,15 +142,25 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
       for i in range(w / width):
         for j in range(h / height):
           if filter_inimage(width, height, image, i*width*4, j*height*4):
-            inimages.append((image, i*width*4, j*height*4))
-            outimages.append((mask, i*width*4, j*height*4))
-            added_count += 1
             if filter_outimage(width, height, mask, i*width*4, j*height*4):
-              metastasis_count += 1
+              for k in range(8):
+                inimages.append((image, i*width*4, j*height*4, k))
+                outimages.append((mask, i*width*4, j*height*4, k))
+              metastasis_count += 8
+              added_count += 8
+              total_count += 8
+            else:
+              inimages.append((image, i*width*4, j*height*4, 0))
+              outimages.append((mask, i*width*4, j*height*4, 0))
+              added_count += 1
+              total_count += 1
           else:
             if filter_outimage(width, height, mask, i*width*4, j*height*4):
-              missed_metastasis_count += 1
-          total_count += 1
+              missed_metastasis_count += 8
+              total_count += 8
+            else:
+              total_count += 1
+
 
       print "Total Count: {}, Added Count: {}, Metastasis Count: {}, Missed Metastasis Count: {}".format(total_count, added_count, metastasis_count, missed_metastasis_count)
 
@@ -165,7 +173,7 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
       for i in range(w / width):
         for j in range(h / height):
           if filter_inimage(width, height, image, i*width*4, j*height*4):
-            inimages.append((image, i*width*4, j*height*4))
+            inimages.append((image, i*width*4, j*height*4, 0))
             outimages.append(None)
             added_count += 1
           total_count += 1

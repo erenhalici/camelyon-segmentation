@@ -8,8 +8,8 @@ parser = argparse.ArgumentParser(description='Train a DCNN to learn Metastasis r
 
 parser.add_argument('--output-dir', default='data/models/5_layers/', help='Data directory (default: data/models/5_layers/)', dest='output_dir')
 parser.add_argument('--data-dir', default='data/', help='Data file (default: data/training/L9.hdf5)', dest='data_dir')
-parser.add_argument('--width',  default=512, help='Width of Input Patches',  dest='width')
-parser.add_argument('--heigth', default=512, help='Height of Input Patches', dest='height')
+parser.add_argument('--width',  default=512, type=int, help='Width of Input Patches',  dest='width')
+parser.add_argument('--height', default=512, type=int, help='Height of Input Patches', dest='height')
 parser.add_argument('--start-file', help='Starting data file', dest='start_file')
 parser.add_argument('--start-step', default=0, type=int, help='Starting step (Default: 0)', dest='start_step')
 parser.add_argument('--num-steps', default=300000, type=int, help='Number of steps of execution (default: 300000)', dest='num_steps')

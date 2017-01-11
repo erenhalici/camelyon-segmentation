@@ -156,21 +156,21 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
 
       print "Total Count: {}, Added Count: {}, Metastasis Count: {}, Missed Metastasis Count: {}".format(total_count, added_count, metastasis_count, missed_metastasis_count)
 
-      for imagefile in fnmatch.filter(filenames, 'Normal_*.tif'):
-        print imagefile
+    for imagefile in fnmatch.filter(filenames, 'Normal_*.tif'):
+      print imagefile
 
-        image = openslide.OpenSlide(data_dir + 'training/' + imagefile)
-        (w, h) = image.level_dimensions[2]
+      image = openslide.OpenSlide(data_dir + 'training/' + imagefile)
+      (w, h) = image.level_dimensions[2]
 
-        for i in range(w / width):
-          for j in range(h / height):
-            if filter_inimage(width, height, image, i*width*4, j*height*4):
-              inimages.append((image, i*width*4, j*height*4))
-              outimages.append(None)
-              added_count += 1
-            total_count += 1
+      for i in range(w / width):
+        for j in range(h / height):
+          if filter_inimage(width, height, image, i*width*4, j*height*4):
+            inimages.append((image, i*width*4, j*height*4))
+            outimages.append(None)
+            added_count += 1
+          total_count += 1
 
-        print "Total Count: {}, Added Count: {}, Metastasis Count: {}, Missed Metastasis Count: {}".format(total_count, added_count, metastasis_count, missed_metastasis_count)
+      print "Total Count: {}, Added Count: {}, Metastasis Count: {}, Missed Metastasis Count: {}".format(total_count, added_count, metastasis_count, missed_metastasis_count)
 
 
   num_samples = len(inimages)

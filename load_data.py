@@ -108,7 +108,7 @@ class DataSet(object):
 def filter_inimage(width, height, image, i, j):
   im = np.array(image.read_region((i, j), 2, (width, height)))[:,:,0:3]
   avg = np.sum(im)/width/height/3
-  return avg < 230
+  return avg < 240
 
 def filter_outimage(width, height, image, i, j):
   im = np.array(image.read_region((i, j), 2, (width, height)))[:,:,0]

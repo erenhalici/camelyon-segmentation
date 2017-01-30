@@ -7,7 +7,7 @@ from model import *
 parser = argparse.ArgumentParser(description='Train a DCNN to learn Metastasis regions of human cells.')
 
 parser.add_argument('--output-dir', default='data/models/5_layers/', help='Data directory (default: data/models/5_layers/)', dest='output_dir')
-parser.add_argument('--data-dir', default='data/', help='Data file (default: data/training/L9.hdf5)', dest='data_dir')
+parser.add_argument('--data-dir', default='data/', help='Data file (default: data/)', dest='data_dir')
 parser.add_argument('--width',  default=512, type=int, help='Width of Input Patches',  dest='width')
 parser.add_argument('--height', default=512, type=int, help='Height of Input Patches', dest='height')
 parser.add_argument('--start-file', help='Starting data file', dest='start_file')
@@ -28,17 +28,6 @@ num_output_layers = 1
 data_set = read_data_sets(args.width, args.height, args.data_dir, args.start_step*args.batch_size)
 
 print("Training Data Size: {}".format(data_set.train.num_samples))
-# print("Training InImage Shape: {}".format(data_set.train.inimages.shape))
-# print("Training OutImage Shape: {}".format(data_set.train.outimages.shape))
-# print("Test InImage Shape: {}".format(data_set.test.inimages.shape))
-# print("Test OutImage Shape: {}".format(data_set.test.outimages.shape))
-
-# num_input_layers  = data_set.train.inimages.shape[3]
-# num_output_layers = data_set.train.outimages.shape[3]
-# width = data_set.train.inimages.shape[1]
-# height = data_set.train.inimages.shape[2]
-
-
 
 model = Model(args.width, args.height, num_input_layers, num_output_layers, args.filter_count, args.layer_count, args.learning_rate)
 
@@ -52,28 +41,13 @@ if args.start_file:
     saver.restore(sess, args.start_file)
     print("Model restored.")
 
-train_error_sum = 0.0
+train_accuracy_sum = 0.0
 
-for i in range(args.num_steps):
-  batch = data_set.train.next_batch(args.batch_size)
-  if i%args.test_interval == 0:
-    print "epoch: %g"%data_set.train.epoch()
-    # print "test error %g"%sess.run(model.error, feed_dict={
-    #   model.x_image: data_set.test.all_inimages(), model.y_: data_set.test.all_outimages(), model.keep_prob: 1.0})
-    save_path = saver.save(sess, args.output_dir + "model_" + str(i+args.start_step) + ".ckpt")
-    print("Model saved in file: ", save_path)
+batch = data_set.train.next_batch(args.batch_size)
 
-  if i%10 == 0:
-    train_error_sum += sess.run(model.error,feed_dict={
-      model.x_image:batch[0], model.y_: batch[1], model.keep_prob: 1.0})
+train_error = sess.run(model.error,feed_dict={model.x_image:batch[0], model.y_: batch[1], model.keep_prob: 1.0})
 
-  if i%500 == 0:
-    print "step %d, training error %g"%(i+args.start_step, train_error_sum/50)
-    train_error_sum = 0
+print train_error
 
-  sess.run(model.train_step, feed_dict={model.x_image: batch[0], model.y_: batch[1], model.keep_prob: args.dropout})
-
-# print "test error %g"%sess.run(model.error, feed_dict={
+# print "test accuracy %g"%sess.run(model.accuracy, feed_dict={
 #   model.x_image: data_set.test.all_inimages(), model.y_: data_set.test.all_outimages(), model.keep_prob: 1.0})
-save_path = saver.save(sess, args.output_dir + "model.ckpt")
-print("Model saved in file: ", save_path)

@@ -65,8 +65,9 @@ class Model(object):
     cross_entropy = -tf.reduce_sum(self._y_*tf.log(tf.clip_by_value(self._y,1e-10,1.0)))
     self._train_step = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-4).minimize(cross_entropy)
 
-    correct_prediction = tf.equal(tf.argmax(self._y,3), tf.argmax(self._y_,3))
-    self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+    # correct_prediction = tf.equal(tf.argmax(self._y,3), tf.argmax(self._y_,3))
+    # self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+    self._error = tf.reduce_mean(tf.square(self._y_ - self._y))
 
 
 
@@ -88,6 +89,9 @@ class Model(object):
   @property
   def accuracy(self):
       return self._accuracy
+  @property
+  def error(self):
+      return self._error
 
 
 

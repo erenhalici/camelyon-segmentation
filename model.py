@@ -67,7 +67,7 @@ class Model(object):
 
     # correct_prediction = tf.equal(tf.argmax(self._y,3), tf.argmax(self._y_,3))
     # self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-    self._error = tf.reduce_mean(tf.square(self._y_ - self._y))
+    self._error = tf.sqrt(tf.reduce_mean(tf.square(self._y_ - self._y)))
 
 
 

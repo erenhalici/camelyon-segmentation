@@ -9,7 +9,7 @@ class DataSet(object):
     self._width  = width
     self._height = height
 
-    self._num_samples = num_samples * 8
+    self._num_samples = num_samples
 
     self._inimages = inimages
     self._outimages = outimages
@@ -33,9 +33,9 @@ class DataSet(object):
   def epochs_completed(self):
     return self._epochs_completed
   def all_inimages(self):
-    return [self.get_inimage_at_index(index*8)  for index in range(self._num_samples/8)]
+    return [self.get_inimage_at_index(index)  for index in range(self._num_samples)]
   def all_outimages(self):
-    return [self.get_outimage_at_index(index*8) for index in range(self._num_samples/8)]
+    return [self.get_outimage_at_index(index) for index in range(self._num_samples)]
   def epoch(self):
     return self._epochs_completed + self._index_in_epoch*1.0/self._num_samples
   def augment_image(self, image, i):
@@ -65,9 +65,9 @@ class DataSet(object):
       (image, i, j, k) = image_data
       return self.augment_image(np.array(image.read_region((i, j), 2, (self._width, self._height)))[:,:,0].reshape([self._width,self._height,1]), k)
   def get_inimage_at_index(self, index):
-    return self.load_inimage(self._inimages[index/8])
+    return self.load_inimage(self._inimages[index])
   def get_outimage_at_index(self, index):
-    return self.load_outimage(self._outimages[index/8])
+    return self.load_outimage(self._outimages[index])
   def set_start_step(self, start_step):
     self._index_in_epoch = start_step
     if self._index_in_epoch > self._num_samples:

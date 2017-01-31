@@ -151,9 +151,9 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
               added_count += 8
               total_count += 8
             else:
-              inimages.append((image, i*width*4, j*height*4, 0))
-              outimages.append((mask, i*width*4, j*height*4, 0))
-              added_count += 1
+              # inimages.append((image, i*width*4, j*height*4, 0))
+              # outimages.append((mask, i*width*4, j*height*4, 0))
+              # added_count += 1
               total_count += 1
           else:
             if filter_outimage(width, height, mask, i*width*4, j*height*4):

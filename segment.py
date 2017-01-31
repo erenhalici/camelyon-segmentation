@@ -5,13 +5,14 @@ import argparse
 from model import *
 from PIL import Image
 import scipy.misc
+import numpy as np
 
 parser = argparse.ArgumentParser(description='Train a DCNN to learn Metastasis regions of human cells.')
 
 parser.add_argument('--output-dir', default='data/output/', help='Data directory (default: data/output/)', dest='output_dir')
 parser.add_argument('--data-dir', default='data/', help='Data file (default: data/)', dest='data_dir')
-parser.add_argument('--width',  default=512, type=int, help='Width of Input Patches',  dest='width')
-parser.add_argument('--height', default=512, type=int, help='Height of Input Patches', dest='height')
+parser.add_argument('--width',  default=128, type=int, help='Width of Input Patches',  dest='width')
+parser.add_argument('--height', default=128, type=int, help='Height of Input Patches', dest='height')
 parser.add_argument('--start-file', help='Starting data file', dest='start_file')
 parser.add_argument('--start-step', default=0, type=int, help='Starting step (Default: 0)', dest='start_step')
 parser.add_argument('--num-steps', default=300000, type=int, help='Number of steps of execution (default: 300000)', dest='num_steps')
@@ -50,6 +51,7 @@ batch = data_set.train.next_batch(args.batch_size)
 [segmented, train_error] = sess.run([model.y, model.error], feed_dict={model.x_image:batch[0], model.y_: batch[1], model.keep_prob: 1.0})
 
 print train_error
+Image.fromarray(segmented[0].reshape(args.width, args.height)*255).show()
 
 for i in range(args.batch_size):
   inimage = batch[0][i]

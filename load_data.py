@@ -63,7 +63,8 @@ class DataSet(object):
       return np.zeros([self._width,self._height,1])
     else:
       (image, i, j, k) = image_data
-      return self.augment_image(np.array(image.read_region((i, j), 2, (self._width, self._height)))[:,:,0].reshape([self._width,self._height,1]), k)
+      im = self.augment_image(np.array(image.read_region((i, j), 2, (self._width, self._height)))[:,:,0].reshape([self._width,self._height,1]), k)
+      return im/255.0
   def get_inimage_at_index(self, index):
     return self.load_inimage(self._inimages[index])
   def get_outimage_at_index(self, index):

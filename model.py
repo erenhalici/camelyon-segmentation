@@ -53,7 +53,8 @@ class Model(object):
       last_h = h_conv_3
 
     h_conv = self.conv_layer(last_h, last_filter_count, num_output_channels)
-    self._y = self.softmax(h_conv, 3)
+    # self._y = self.softmax(h_conv, 3)
+    self._y = tf.sigmoid(h_conv)
 
     self._keep_prob = tf.placeholder("float")
 

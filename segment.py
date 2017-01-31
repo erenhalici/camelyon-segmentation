@@ -3,10 +3,12 @@ import tensorflow as tf
 import os.path
 import argparse
 from model import *
+from PIL import Image
+import scipy.misc
 
 parser = argparse.ArgumentParser(description='Train a DCNN to learn Metastasis regions of human cells.')
 
-parser.add_argument('--output-dir', default='data/models/5_layers/', help='Data directory (default: data/models/5_layers/)', dest='output_dir')
+parser.add_argument('--output-dir', default='data/output/', help='Data directory (default: data/output/)', dest='output_dir')
 parser.add_argument('--data-dir', default='data/', help='Data file (default: data/)', dest='data_dir')
 parser.add_argument('--width',  default=512, type=int, help='Width of Input Patches',  dest='width')
 parser.add_argument('--height', default=512, type=int, help='Height of Input Patches', dest='height')
@@ -45,9 +47,19 @@ train_accuracy_sum = 0.0
 
 batch = data_set.train.next_batch(args.batch_size)
 
-train_error = sess.run(model.error,feed_dict={model.x_image:batch[0], model.y_: batch[1], model.keep_prob: 1.0})
+[segmented, train_error] = sess.run([model.y, model.error], feed_dict={model.x_image:batch[0], model.y_: batch[1], model.keep_prob: 1.0})
 
 print train_error
+
+for i in range(args.batch_size):
+  inimage = batch[0][i]
+  outimage = segmented[i].reshape(args.width, args.height) * 255
+  truthimage = batch[1][i].reshape(args.width, args.height) * 255
+
+  scipy.misc.imsave(args.output_dir + str(i) + '_in.jpg', inimage)
+  scipy.misc.imsave(args.output_dir + str(i) + '_out.jpg', outimage)
+  scipy.misc.imsave(args.output_dir + str(i) + '_truth.jpg', truthimage)
+
 
 # print "test accuracy %g"%sess.run(model.accuracy, feed_dict={
 #   model.x_image: data_set.test.all_inimages(), model.y_: data_set.test.all_outimages(), model.keep_prob: 1.0})

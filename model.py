@@ -52,9 +52,9 @@ class Model(object):
       filter_count = filter_count / 2
       last_h = h_conv_3
 
-    h_conv = self.conv_layer(last_h, last_filter_count, num_output_channels)
+    # h_conv = self.conv_layer(last_h, last_filter_count, num_output_channels)
     # self._y = self.softmax(h_conv, 3)
-    self._y = tf.sigmoid(h_conv)
+    self._y = self.s_conv_layer(last_h, last_filter_count, num_output_channels)
 
     self._keep_prob = tf.placeholder("float")
 
@@ -97,7 +97,7 @@ class Model(object):
 
 
   def weight_variable(self, shape):
-    initial = tf.truncated_normal(shape, stddev=0.1)
+    initial = tf.truncated_normal(shape, stddev=0.04)
     return tf.Variable(initial)
 
   def bias_variable(self, shape):
@@ -117,6 +117,11 @@ class Model(object):
     W_conv = self.weight_variable([3, 3, input_channes, output_channels])
     b_conv = self.bias_variable([output_channels])
     return tf.nn.relu(self.conv2d(input_layer, W_conv) + b_conv)
+  def s_conv_layer(self, input_layer, input_channes, output_channels):
+    W_conv = self.weight_variable([3, 3, input_channes, output_channels])
+    b_conv = self.bias_variable([output_channels])
+    return tf.sigmoid(self.conv2d(input_layer, W_conv) + b_conv)
+
 
   def softmax(self, target, axis, name=None):
     with tf.name_scope(name, 'softmax', values=[target]):

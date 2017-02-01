@@ -51,17 +51,18 @@ batch = data_set.train.next_batch(args.batch_size)
 [segmented, train_error] = sess.run([model.y, model.error], feed_dict={model.x_image:batch[0], model.y_: batch[1], model.keep_prob: 1.0})
 
 print train_error
-Image.fromarray(segmented[0].reshape(args.width, args.height)*255).show()
+# Image.fromarray(segmented[0].reshape(args.width, args.height)*255).show()
 
 for i in range(args.batch_size):
-  inimage = batch[0][i]
-  outimage = segmented[i].reshape(args.width, args.height) * 255
-  truthimage = batch[1][i].reshape(args.width, args.height) * 255
+  inimage = (batch[0][i]).astype(int)
+  outimage = (segmented[i].reshape(args.width, args.height) * 255).astype(int)
+  outthr = (np.where(segmented[i].reshape(args.width, args.height) > 0.5, 255, 0)).astype(int)
+  truthimage = (batch[1][i].reshape(args.width, args.height) * 255).astype(int)
 
   scipy.misc.imsave(args.output_dir + str(i) + '_in.jpg', inimage)
   scipy.misc.imsave(args.output_dir + str(i) + '_out.jpg', outimage)
+  scipy.misc.imsave(args.output_dir + str(i) + '_out_thr.jpg', outthr)
   scipy.misc.imsave(args.output_dir + str(i) + '_truth.jpg', truthimage)
-
 
 # print "test accuracy %g"%sess.run(model.accuracy, feed_dict={
 #   model.x_image: data_set.test.all_inimages(), model.y_: data_set.test.all_outimages(), model.keep_prob: 1.0})

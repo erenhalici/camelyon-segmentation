@@ -183,17 +183,19 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
 
 
   num_samples = len(inimages)
-  TEST_SIZE = 32
+  # TEST_SIZE = 4
 
-  test_inimages = inimages[-TEST_SIZE:]
-  test_outimages = outimages[-TEST_SIZE:]
+  # test_inimages = inimages[-TEST_SIZE:]
+  # test_outimages = outimages[-TEST_SIZE:]
 
-  train_inimages = inimages[:-TEST_SIZE]
-  train_outimages = outimages[:-TEST_SIZE]
+  # train_inimages = inimages[:-TEST_SIZE]
+  # train_outimages = outimages[:-TEST_SIZE]
+  train_inimages = inimages
+  train_outimages = outimages
 
   data_sets.train = DataSet(width, height, train_inimages, train_outimages, num_samples - TEST_SIZE)
   data_sets.train.set_start_step(start_step)
 
-  data_sets.test  = DataSet(width, height, test_inimages,  test_outimages, TEST_SIZE)
+  # data_sets.test  = DataSet(width, height, test_inimages,  test_outimages, TEST_SIZE)
 
   return data_sets

@@ -193,7 +193,8 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
   train_inimages = inimages
   train_outimages = outimages
 
-  data_sets.train = DataSet(width, height, train_inimages, train_outimages, num_samples - TEST_SIZE)
+  # data_sets.train = DataSet(width, height, train_inimages, train_outimages, num_samples - TEST_SIZE)
+  data_sets.train = DataSet(width, height, train_inimages, train_outimages, num_samples)
   data_sets.train.set_start_step(start_step)
 
   # data_sets.test  = DataSet(width, height, test_inimages,  test_outimages, TEST_SIZE)

@@ -73,6 +73,7 @@ for i in range(args.num_steps):
   if i%500 == 0:
     print "step %d, training error %g, training accuracy %g"%(i+args.start_step, train_error_sum/50, train_acc_sum/50)
     train_error_sum = 0
+    train_acc_sum = 0
 
   sess.run(model.train_step, feed_dict={model.x_image: batch[0], model.y_: batch[1], model.keep_prob: args.dropout})
 

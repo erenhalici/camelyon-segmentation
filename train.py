@@ -53,6 +53,7 @@ if args.start_file:
     print("Model restored.")
 
 train_error_sum = 0.0
+train_acc_sum = 0.0
 
 for i in range(args.num_steps):
   batch = data_set.train.next_batch(args.batch_size)
@@ -64,11 +65,13 @@ for i in range(args.num_steps):
     print("Model saved in file: ", save_path)
 
   if i%10 == 0:
-    train_error_sum += sess.run(model.error,feed_dict={
+    [err, acc] = sess.run([model.error, model.accuracy],feed_dict={
       model.x_image:batch[0], model.y_: batch[1], model.keep_prob: 1.0})
+    train_error_sum += err
+    train_acc_sum += acc
 
   if i%500 == 0:
-    print "step %d, training error %g"%(i+args.start_step, train_error_sum/50)
+    print "step %d, training error %g, training accuracy %g"%(i+args.start_step, train_error_sum/50, train_acc_sum/50)
     train_error_sum = 0
 
   sess.run(model.train_step, feed_dict={model.x_image: batch[0], model.y_: batch[1], model.keep_prob: args.dropout})

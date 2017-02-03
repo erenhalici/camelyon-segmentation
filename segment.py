@@ -48,9 +48,9 @@ train_accuracy_sum = 0.0
 
 batch = data_set.train.next_batch(args.batch_size)
 
-[segmented, train_error] = sess.run([model.y, model.error], feed_dict={model.x_image:batch[0], model.y_: batch[1], model.keep_prob: 1.0})
+[segmented, train_error, train_accuracy] = sess.run([model.y, model.error, model.accuracy], feed_dict={model.x_image:batch[0], model.y_: batch[1], model.keep_prob: 1.0})
 
-print train_error
+print train_error, train_accuracy
 # Image.fromarray(segmented[0].reshape(args.width, args.height)*255).show()
 
 for i in range(args.batch_size):

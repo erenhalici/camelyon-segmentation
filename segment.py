@@ -81,12 +81,21 @@ def filter_inimage(width, height, image, i, j):
 width  = args.width
 height = args.height
 
-image = openslide.OpenSlide('data/training/Tumor_091.tif')
-mask  = openslide.OpenSlide('data/training/Tumor_091_Mask.tif')
+infile = 'data/training/Tumor_091'
+outfile = 'data/output/Tumor_091'
+# infile = 'data/test/Test_065'
+# outfile = 'data/output/Test_065'
+# infile = 'data/test/Test_122'
+# outfile = 'data/output/Test_122'
+# infile = 'data/test/Test_046'
+# outfile = 'data/output/Test_046'
+
+image = openslide.OpenSlide(infile + '.tif')
+mask  = openslide.OpenSlide(infile + '_Mask.tif')
 (w, h) = image.level_dimensions[2]
 
-scipy.misc.imsave('data/output/Tumor_091.jpg', image.read_region((0, 0), 6, (w/16, h/16)))
-scipy.misc.imsave('data/output/Tumor_091_Mask.jpg', mask.read_region((0, 0), 6, (w/16, h/16)))
+scipy.misc.imsave(outfile + '.jpg', image.read_region((0, 0), 6, (w/16, h/16)))
+scipy.misc.imsave(outfile + '_Mask.jpg', mask.read_region((0, 0), 6, (w/16, h/16)))
 
 outimage = np.zeros((h/16, w/16))
 
@@ -95,12 +104,17 @@ print np.array(mask.read_region((0, 0), 6, (w/16, h/16))).shape
 
 for i in range(w / width):
   for j in range(h / height):
-    in_im = np.array(image.read_region((i*width*4, j*height*4), 2, (width, height)))[:,:,0:3]
+    x = i*width
+    y = j*height
+
+    in_im = np.array(image.read_region((x*4, y*4), 2, (width, height)))[:,:,0:3]
     if (np.sum(in_im)/width/height/3) < 220:
       o = (sess.run(model.y, feed_dict={model.x_image: [in_im]}).reshape(width, height) * 255.0).astype(np.uint8)
       out_im = np.array(Image.fromarray(o).resize((width/16, height/16), Image.ANTIALIAS))
-      outimage[j * height / 16:(j+1) * height / 16, i * width / 16:(i+1) * width / 16] = out_im
+      outimage[y/16:(y+height)/16, x/16:(x+width)/16] += out_im
+
 
   print i*1.0/(w/width)
+  scipy.misc.imsave(outfile + '_Output.jpg', outimage)
+  scipy.misc.imsave(outfile + '_Output_Thr.jpg', np.where(outimage > 128, 255, 0))
 
-scipy.misc.imsave('data/output/Tumor_091_Output.jpg', outimage)

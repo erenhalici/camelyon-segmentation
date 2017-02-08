@@ -36,7 +36,8 @@ OUTLEVEL = 4
 
 # print("Training Data Size: {}".format(data_set.train.num_samples))
 
-model = Model(args.width, args.height, num_input_layers, num_output_layers, args.filter_count, args.layer_count, args.learning_rate)
+with tf.device('/gpu:1'):
+  model = Model(args.width, args.height, num_input_layers, num_output_layers, args.filter_count, args.layer_count, args.learning_rate)
 
 saver = tf.train.Saver()
 sess = tf.Session()

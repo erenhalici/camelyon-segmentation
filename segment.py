@@ -26,8 +26,11 @@ parser.add_argument('--test-interval', default=10000, type=int, help='Test Accur
 
 args = parser.parse_args()
 
-num_input_layers = 3
+num_input_layers = 9
 num_output_layers = 1
+
+LEVEL = 1
+OUTLEVEL = 4
 
 # data_set = read_data_sets(args.width, args.height, args.data_dir, args.start_step*args.batch_size)
 
@@ -81,40 +84,64 @@ def filter_inimage(width, height, image, i, j):
 width  = args.width
 height = args.height
 
-infile = 'data/training/Tumor_091'
-outfile = 'data/output/Tumor_091'
+# infile = 'data/training/Tumor_091'
+# outfile = 'data/output/Tumor_091'
 # infile = 'data/test/Test_065'
 # outfile = 'data/output/Test_065'
 # infile = 'data/test/Test_122'
 # outfile = 'data/output/Test_122'
 # infile = 'data/test/Test_046'
 # outfile = 'data/output/Test_046'
+# infile = 'data/test/Test_001'
+# outfile = 'data/output/Test_001'
 
-image = openslide.OpenSlide(infile + '.tif')
-mask  = openslide.OpenSlide(infile + '_Mask.tif')
-(w, h) = image.level_dimensions[2]
+indir = 'data/test'
+outdir = 'data/output/multilayer'
 
-scipy.misc.imsave(outfile + '.jpg', image.read_region((0, 0), 6, (w/16, h/16)))
-scipy.misc.imsave(outfile + '_Mask.jpg', mask.read_region((0, 0), 6, (w/16, h/16)))
+for root, dirnames, filenames in os.walk(indir):
+  for maskfile in fnmatch.filter(filenames, 'Test_*_Mask.tif'):
+    imagefile = maskfile[:-9] + '.tif'
+    print imagefile
 
-outimage = np.zeros((h/16, w/16))
+    infile = indir + imagefile
+    outfile = outdir + imagefile
 
-print outimage.shape
-print np.array(mask.read_region((0, 0), 6, (w/16, h/16))).shape
+    image = openslide.OpenSlide(infile + '.tif')
+    mask  = openslide.OpenSlide(infile + '_Mask.tif')
+    (w, h) = image.level_dimensions[LEVEL]
 
-for i in range(w / width):
-  for j in range(h / height):
-    x = i*width
-    y = j*height
+    scipy.misc.imsave(outfile + '.jpg', image.read_region((0, 0), OUTLEVEL, (w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL)))))
+    scipy.misc.imsave(outfile + '_Mask.jpg', mask.read_region((0, 0), OUTLEVEL, (w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL)))))
 
-    in_im = np.array(image.read_region((x*4, y*4), 2, (width, height)))[:,:,0:3]
-    if (np.sum(in_im)/width/height/3) < 220:
-      o = (sess.run(model.y, feed_dict={model.x_image: [in_im]}).reshape(width, height) * 255.0).astype(np.uint8)
-      out_im = np.array(Image.fromarray(o).resize((width/16, height/16), Image.ANTIALIAS))
-      outimage[y/16:(y+height)/16, x/16:(x+width)/16] += out_im
+    outimage = np.zeros((h/(2**(OUTLEVEL-LEVEL)), w/(2**(OUTLEVEL-LEVEL))))
+
+    print outimage.shape
+    print np.array(mask.read_region((0, 0), OUTLEVEL, (w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL))))).shape
+
+    scale = 1
+    for i in range(w / width / scale):
+      for j in range(h / height / scale):
+        x = i*width * scale
+        y = j*height * scale
+
+        # in_im = np.array(image.read_region((x*4, y*4), 2, (width, height)))[:,:,0:3]
+        im1 = np.array(image.read_region((x*(2**LEVEL), y*(2**LEVEL)), LEVEL, (width, height)))[:,:,0:3]
+
+        if (np.sum(im1)/width/height/3) < 220:
+          im2 = np.array(image.read_region((x*(2**LEVEL) - (width*3/2)*(2**LEVEL),  y*(2**LEVEL) - (height*3/2)*(2**LEVEL)),  LEVEL+2, (width, height)))[:,:,0:3]
+          im3 = np.array(image.read_region((x*(2**LEVEL) - (width*15/2)*(2**LEVEL), y*(2**LEVEL) - (height*15/2)*(2**LEVEL)), LEVEL+4, (width, height)))[:,:,0:3]
+          im = np.dstack((im1, im2, im3))
+
+          # Image.fromarray(im[:,:,0:3]).show()
+          # Image.fromarray(im[:,:,3:6]).show()
+          # Image.fromarray(im[:,:,6:9]).show()
+
+          o = (sess.run(model.y, feed_dict={model.x_image: [im]}).reshape(width, height) * 255.0).astype(np.uint8)
+          out_im = np.array(Image.fromarray(o).resize((width/(2**(OUTLEVEL-LEVEL)), height/(2**(OUTLEVEL-LEVEL))), Image.ANTIALIAS))
+          outimage[y/(2**(OUTLEVEL-LEVEL)):(y+height)/(2**(OUTLEVEL-LEVEL)), x/(2**(OUTLEVEL-LEVEL)):(x+width)/(2**(OUTLEVEL-LEVEL))] += out_im
 
 
-  print i*1.0/(w/width)
-  scipy.misc.imsave(outfile + '_Output.jpg', outimage)
-  scipy.misc.imsave(outfile + '_Output_Thr.jpg', np.where(outimage > 128, 255, 0))
+      print i*1.0/(w/width)*scale
+    scipy.misc.imsave(outfile + '_Output.tif', outimage)
+    scipy.misc.imsave(outfile + '_Output_Thr.jpg', np.where(outimage > 128, 255, 0))
 

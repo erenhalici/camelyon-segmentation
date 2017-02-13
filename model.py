@@ -1,8 +1,6 @@
 
 import tensorflow as tf
 
-K = 1
-
 class Model(object):
   def __init__(self, width, height, num_input_channels, num_output_channels, filter_count, layer_count, learning_rate=1e-4):
     self._x_image = tf.placeholder(tf.float32, [None, width, height, num_input_channels])
@@ -52,26 +50,15 @@ class Model(object):
       filter_count = filter_count / 2
       last_h = h_conv_3
 
-    # h_conv = self.conv_layer(last_h, last_filter_count, num_output_channels)
-    # self._y = self.softmax(h_conv, 3)
     self._y = self.s_conv_layer(last_h, last_filter_count, num_output_channels)
-
-    self._keep_prob = tf.placeholder("float")
-
-    # if dropout:
-    #   softmax_input_drop = tf.nn.dropout(softmax_input, self._keep_prob)
-    # else:
-    #   softmax_input_drop = softmax_input
 
     cross_entropy = -tf.reduce_sum(self._y_*tf.log(tf.clip_by_value(self._y,1e-10,1.0)))
 
-    # correct_prediction = tf.equal(tf.argmax(self._y,3), tf.argmax(self._y_,3))
     difference = self._y_ - self._y
     correct_prediction = tf.less(tf.abs(difference), 0.5)
     self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
     error_sq = tf.reduce_mean(tf.square(difference))
 
-    # self._train_step = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-4).minimize(cross_entropy)
     self._train_step = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-4).minimize(error_sq)
     self._error = tf.sqrt(error_sq)
 
@@ -85,9 +72,6 @@ class Model(object):
   def y_(self):
     return self._y_
   @property
-  def keep_prob(self):
-    return self._keep_prob
-  @property
   def train_step(self):
     return self._train_step
   @property
@@ -96,8 +80,6 @@ class Model(object):
   @property
   def error(self):
       return self._error
-
-
 
   def weight_variable(self, shape):
     initial = tf.truncated_normal(shape, stddev=0.04)
@@ -124,12 +106,3 @@ class Model(object):
     W_conv = self.weight_variable([3, 3, input_channes, output_channels])
     b_conv = self.bias_variable([output_channels])
     return tf.sigmoid(self.conv2d(input_layer, W_conv) + b_conv)
-
-
-  def softmax(self, target, axis, name=None):
-    with tf.name_scope(name, 'softmax', values=[target]):
-      max_axis = tf.reduce_max(target, axis, keep_dims=True)
-      target_exp = tf.exp(target-max_axis)
-      normalize = tf.reduce_sum(target_exp, axis, keep_dims=True)
-      softmax = target_exp / normalize
-      return softmax

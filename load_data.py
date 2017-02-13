@@ -110,8 +110,6 @@ class DataSet(object):
 
     inimages  = [self.get_inimage_at_index(index)  for index in indices]
     outimages = [self.get_outimage_at_index(index) for index in indices]
-    # inimages  = self._pool.map(self.get_inimage_at_index,   indices)
-    # outimages = self._pool.map(self.get_outimage_at_index,  indices)
 
     return inimages, outimages
 
@@ -162,9 +160,9 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
               added_count += 8
               total_count += 8
             else:
-              # inimages.append((image, i*width*(2**LEVEL), j*height*(2**LEVEL), 0))
-              # outimages.append((mask, i*width*(2**LEVEL), j*height*(2**LEVEL), 0))
-              # added_count += 1
+              inimages.append((image, i*width*(2**LEVEL), j*height*(2**LEVEL), 0))
+              outimages.append((mask, i*width*(2**LEVEL), j*height*(2**LEVEL), 0))
+              added_count += 1
               total_count += 1
           else:
             if filter_outimage(width, height, mask, i*width*(2**LEVEL), j*height*(2**LEVEL)):
@@ -194,20 +192,10 @@ def read_data_sets(width, height, data_dir, load_train=True, load_test=True, sta
 
 
   num_samples = len(inimages)
-  # TEST_SIZE = 4
-
-  # test_inimages = inimages[-TEST_SIZE:]
-  # test_outimages = outimages[-TEST_SIZE:]
-
-  # train_inimages = inimages[:-TEST_SIZE]
-  # train_outimages = outimages[:-TEST_SIZE]
   train_inimages = inimages
   train_outimages = outimages
 
-  # data_sets.train = DataSet(width, height, train_inimages, train_outimages, num_samples - TEST_SIZE)
   data_sets.train = DataSet(width, height, train_inimages, train_outimages, num_samples)
   data_sets.train.set_start_step(start_step)
-
-  # data_sets.test  = DataSet(width, height, test_inimages,  test_outimages, TEST_SIZE)
 
   return data_sets

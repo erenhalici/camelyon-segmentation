@@ -5,13 +5,13 @@ import argparse
 from model import *
 # from PIL import Image
 
-parser = argparse.ArgumentParser(description='Train a U-Net to learn Metastasis regions of human cells.')
+parser = argparse.ArgumentParser(description='Train a U-Net to learn the metastasis regions of lymph nodes.')
 
 parser.add_argument('--output-dir', default='data/models/', help='Data directory (default: data/models/)', dest='output_dir')
 parser.add_argument('--data-dir', default='data/', help='Data folder (default: data/)', dest='data_dir')
 parser.add_argument('--width',  default=128, type=int, help='Width of Input Patches (default: 128)',  dest='width')
 parser.add_argument('--height', default=128, type=int, help='Height of Input Patches (default: 128)', dest='height')
-parser.add_argument('--start-file', help='Starting model file', dest='start_file')
+parser.add_argument('--start-file', help='Starting model file (optional)', dest='start_file')
 parser.add_argument('--start-step', default=0, type=int, help='Starting step (Default: 0)', dest='start_step')
 parser.add_argument('--num-steps', default=1000000, type=int, help='Number of steps of execution (default: 1000000)', dest='num_steps')
 parser.add_argument('--learning-rate', default=1e-4, type=float, help='Learning Rate (default: 1e-4)', dest='learning_rate')

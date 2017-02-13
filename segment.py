@@ -8,13 +8,13 @@ import scipy.misc
 import numpy as np
 import openslide
 
-parser = argparse.ArgumentParser(description='Train a DCNN to learn Metastasis regions of human cells.')
+parser = argparse.ArgumentParser(description='Train a U-Net to learn the metastasis regions of lymph nodes.')
 
 parser.add_argument('--output-dir', default='data/output/', help='Data directory (default: data/output/)', dest='output_dir')
 parser.add_argument('--data-dir', default='data/input/', help='Data folder (default: data/input/)', dest='data_dir')
 parser.add_argument('--width',  default=128, type=int, help='Width of Input Patches',  dest='width')
 parser.add_argument('--height', default=128, type=int, help='Height of Input Patches', dest='height')
-parser.add_argument('--model-file', help='Model file', dest='model_file')
+parser.add_argument('--model-file', default='data/models/model.ckpt', help='Model file (default: data/models/model.ckpt)', dest='model_file')
 parser.add_argument('--filter-count', default=64, type=int, help='Number of convolutions filters in the first level  (default: 64)', dest='filter_count')
 parser.add_argument('--layer-count', default=5, type=int, help='Number of convolutions layers  (default: 5)', dest='layer_count')
 parser.add_argument('--out-level', default=4, type=int, help='Output level (default: 4)', dest='out_level')

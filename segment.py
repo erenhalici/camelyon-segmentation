@@ -7,6 +7,7 @@ from PIL import Image
 import scipy.misc
 import numpy as np
 import openslide
+import fnmatch
 
 parser = argparse.ArgumentParser(description='Train a U-Net to learn the metastasis regions of lymph nodes.')
 
@@ -52,7 +53,7 @@ outdir = args.output_dir
 
 for root, dirnames, filenames in os.walk(indir):
   for maskfile in fnmatch.filter(filenames, '*_Mask.tif'):
-    imagefile = maskfile[:-9] + '.tif'
+    imagefile = maskfile[:-9]
     print imagefile
 
     infile = indir + imagefile

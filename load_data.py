@@ -124,7 +124,9 @@ def filter_outimage(width, height, image, i, j):
   return avg > 0.0
 
 
-def read_data_sets(width, height, data_dir, load_train=True, load_test=True, start_step=0):
+def read_data_sets(width, height, start_layer, data_dir, load_train=True, load_test=True, start_step=0):
+  LEVEL = start_layer
+
   class DataSets(object):
     pass
   data_sets = DataSets()

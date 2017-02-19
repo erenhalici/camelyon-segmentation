@@ -11,6 +11,7 @@ parser.add_argument('--output-dir', default='data/models/', help='Data directory
 parser.add_argument('--data-dir', default='data/', help='Data folder (default: data/)', dest='data_dir')
 parser.add_argument('--width',  default=128, type=int, help='Width of Input Patches (default: 128)',  dest='width')
 parser.add_argument('--height', default=128, type=int, help='Height of Input Patches (default: 128)', dest='height')
+parser.add_argument('--start-layer', default=2, type=int, help='Lowest layer (default: 2)', dest='start_layer')
 parser.add_argument('--start-file', help='Starting model file (optional)', dest='start_file')
 parser.add_argument('--start-step', default=0, type=int, help='Starting step (Default: 0)', dest='start_step')
 parser.add_argument('--num-steps', default=1000000, type=int, help='Number of steps of execution (default: 1000000)', dest='num_steps')
@@ -25,7 +26,7 @@ args = parser.parse_args()
 num_input_layers = 9
 num_output_layers = 1
 
-data_set = read_data_sets(args.width, args.height, args.data_dir, args.start_step*args.batch_size)
+data_set = read_data_sets(args.width, args.height, args.start_layer, args.data_dir, args.start_step*args.batch_size)
 
 print("Training Data Size: {}".format(data_set.train.num_samples))
 

@@ -1,6 +1,13 @@
 
 import tensorflow as tf
 
+W_list = []
+b_list = []
+h_list = []
+
+def lists():
+  return (W_list, b_list, h_list)
+
 class Model(object):
   def __init__(self, width, height, num_input_channels, num_output_channels, filter_count, layer_count, learning_rate=1e-4):
     self._x_image = tf.placeholder(tf.float32, [None, width, height, num_input_channels])
@@ -15,7 +22,9 @@ class Model(object):
 
     for i in range(layer_count - 1):
       h_conv_1 = self.conv_layer(last_h, last_filter_count, filter_count)
+      h_list.append(h_conv_1)
       h_conv_2 = self.conv_layer(h_conv_1, filter_count, filter_count)
+      h_list.append(h_conv_2)
       layers.append(h_conv_2)
       h_pool   = self.max_pool_2x2(h_conv_2)
 
@@ -28,6 +37,8 @@ class Model(object):
 
     h_conv_1 = self.conv_layer(last_h, last_filter_count, filter_count)
     h_conv_2 = self.conv_layer(h_conv_1, filter_count, filter_count)
+    h_list.append(h_conv_1)
+    h_list.append(h_conv_2)
 
     last_filter_count = filter_count
     filter_count = last_filter_count/2
@@ -45,6 +56,9 @@ class Model(object):
       h_conv_2 = self.conv_layer(h_conv_1, last_filter_count, filter_count)
       h_conv_3 = self.conv_layer(h_conv_2, filter_count, filter_count)
 
+      h_list.append(h_conv_1)
+      h_list.append(h_conv_2)
+      h_list.append(h_conv_3)
 
       last_filter_count = filter_count
       filter_count = filter_count / 2
@@ -101,6 +115,8 @@ class Model(object):
   def conv_layer(self, input_layer, input_channes, output_channels):
     W_conv = self.weight_variable([3, 3, input_channes, output_channels])
     b_conv = self.bias_variable([output_channels])
+    W_list.append(W_conv)
+    b_list.append(b_conv)
     return tf.nn.relu(self.conv2d(input_layer, W_conv) + b_conv)
   def s_conv_layer(self, input_layer, input_channes, output_channels):
     W_conv = self.weight_variable([3, 3, input_channes, output_channels])

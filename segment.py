@@ -15,6 +15,7 @@ parser.add_argument('--output-dir', default='data/output/', help='Data directory
 parser.add_argument('--data-dir', default='data/input/', help='Data folder (default: data/input/)', dest='data_dir')
 parser.add_argument('--width',  default=128, type=int, help='Width of Input Patches',  dest='width')
 parser.add_argument('--height', default=128, type=int, help='Height of Input Patches', dest='height')
+parser.add_argument('--start-layer', default=2, type=int, help='Lowest layer (default: 2)', dest='start_layer')
 parser.add_argument('--model-file', default='data/models/model.ckpt', help='Model file (default: data/models/model.ckpt)', dest='model_file')
 parser.add_argument('--filter-count', default=64, type=int, help='Number of convolutions filters in the first level  (default: 64)', dest='filter_count')
 parser.add_argument('--layer-count', default=5, type=int, help='Number of convolutions layers  (default: 5)', dest='layer_count')
@@ -25,7 +26,7 @@ args = parser.parse_args()
 num_input_layers = 9
 num_output_layers = 1
 
-LEVEL = 1
+LEVEL = args.start_layer
 OUTLEVEL = args.out_level
 
 model = Model(args.width, args.height, num_input_layers, num_output_layers, args.filter_count, args.layer_count, 0)
@@ -51,6 +52,8 @@ height = args.height
 indir = args.data_dir
 outdir = args.output_dir
 
+scale = 1
+
 for root, dirnames, filenames in os.walk(indir):
   for maskfile in fnmatch.filter(filenames, '*_Mask.tif'):
     imagefile = maskfile[:-9]
@@ -71,7 +74,6 @@ for root, dirnames, filenames in os.walk(indir):
     print outimage.shape
     print np.array(mask.read_region((0, 0), OUTLEVEL, (w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL))))).shape
 
-    scale = 1
     for i in range(w / width / scale):
       for j in range(h / height / scale):
         x = i*width * scale
@@ -91,3 +93,14 @@ for root, dirnames, filenames in os.walk(indir):
     scipy.misc.imsave(outfile + '_Output.tif', outimage)
     scipy.misc.imsave(outfile + '_Output_Thr.jpg', np.where(outimage > 128, 255, 0))
 
+
+def im(image, i, j):
+  x = i*width * scale
+  y = j*height * scale
+  im1 = np.array(image.read_region((x*(2**LEVEL), y*(2**LEVEL)), LEVEL, (width, height)))[:,:,0:3]
+  im2 = np.array(image.read_region((x*(2**LEVEL) - (width*3/2)*(2**LEVEL),  y*(2**LEVEL) - (height*3/2)*(2**LEVEL)),  LEVEL+2, (width, height)))[:,:,0:3]
+  im3 = np.array(image.read_region((x*(2**LEVEL) - (width*15/2)*(2**LEVEL), y*(2**LEVEL) - (height*15/2)*(2**LEVEL)), LEVEL+4, (width, height)))[:,:,0:3]
+  return np.dstack((im1, im2, im3))
+
+def show(image, layer):
+  Image.fromarray(image[:,:,layer*3:layer*3+3]).show()

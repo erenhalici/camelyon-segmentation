@@ -41,9 +41,11 @@ if args.model_file:
     saver.restore(sess, args.model_file)
     print("Model restored.")
 
-def filter_inimage(width, height, image, i, j):
-  im = np.array(image.read_region((i, j), 2, (width, height)))[:,:,0:3]
-  avg = np.sum(im)/width/height/3
+def filter_image(image, width, height):
+  s = np.sum(image,2)
+  if np.sum(s==0) > 0.05*width*height:
+    return False
+  avg = np.sum(s)/width/height/3
   return avg < 220
 
 width  = args.width
@@ -55,24 +57,24 @@ outdir = args.output_dir
 scale = 1
 
 for root, dirnames, filenames in os.walk(indir):
-  for maskfile in fnmatch.filter(filenames, '*_Mask.tif'):
-    imagefile = maskfile[:-9]
+  for maskfile in fnmatch.filter(filenames, '*.tif'):
+    imagefile = maskfile[:-4]
     print imagefile
 
     infile = indir + imagefile
     outfile = outdir + imagefile
 
     image = openslide.OpenSlide(infile + '.tif')
-    mask  = openslide.OpenSlide(infile + '_Mask.tif')
+#    mask  = openslide.OpenSlide(infile + '_Mask.tif')
     (w, h) = image.level_dimensions[LEVEL]
 
     scipy.misc.imsave(outfile + '.jpg', image.read_region((0, 0), OUTLEVEL, (w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL)))))
-    scipy.misc.imsave(outfile + '_Mask.jpg', mask.read_region((0, 0), OUTLEVEL, (w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL)))))
+#    scipy.misc.imsave(outfile + '_Mask.jpg', mask.read_region((0, 0), OUTLEVEL, (w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL)))))
 
     outimage = np.zeros((h/(2**(OUTLEVEL-LEVEL)), w/(2**(OUTLEVEL-LEVEL))))
 
     print outimage.shape
-    print np.array(mask.read_region((0, 0), OUTLEVEL, (w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL))))).shape
+#    print np.array(mask.read_region((0, 0), OUTLEVEL, (w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL))))).shape
 
     for i in range(w / width / scale):
       for j in range(h / height / scale):
@@ -81,7 +83,7 @@ for root, dirnames, filenames in os.walk(indir):
 
         im1 = np.array(image.read_region((x*(2**LEVEL), y*(2**LEVEL)), LEVEL, (width, height)))[:,:,0:3]
 
-        if (np.sum(im1)/width/height/3) < 220:
+        if filter_image(im1, width, height):
           im2 = np.array(image.read_region((x*(2**LEVEL) - (width*3/2)*(2**LEVEL),  y*(2**LEVEL) - (height*3/2)*(2**LEVEL)),  LEVEL+2, (width, height)))[:,:,0:3]
           im3 = np.array(image.read_region((x*(2**LEVEL) - (width*15/2)*(2**LEVEL), y*(2**LEVEL) - (height*15/2)*(2**LEVEL)), LEVEL+4, (width, height)))[:,:,0:3]
           im = np.dstack((im1, im2, im3))

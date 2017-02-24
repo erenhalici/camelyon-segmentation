@@ -2,7 +2,7 @@ from load_data import read_data_sets
 import tensorflow as tf
 import os.path
 import argparse
-from model import *
+from model2 import *
 # from PIL import Image
 
 parser = argparse.ArgumentParser(description='Train a U-Net to learn the metastasis regions of lymph nodes.')

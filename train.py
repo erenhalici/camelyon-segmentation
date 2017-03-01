@@ -23,7 +23,7 @@ parser.add_argument('--test-interval', default=10000, type=int, help='Test Accur
 
 args = parser.parse_args()
 
-num_input_layers = 9
+num_input_layers = 3
 num_output_layers = 1
 
 data_set = read_data_sets(args.width, args.height, args.start_layer, args.data_dir, args.start_step*args.batch_size)

@@ -28,8 +28,10 @@ class Model(object):
       layers.append(h_conv_2)
       h_pool   = self.max_pool_2x2(h_conv_2)
 
-      width  = width/2
-      height = height/2
+      width  = width/2 - 2
+      height = height/2 - 2
+
+      print width, height, h_pool.get_shape()
 
       last_filter_count = filter_count
       filter_count = filter_count * 2
@@ -44,12 +46,26 @@ class Model(object):
     filter_count = last_filter_count/2
     last_h = h_conv_2
 
+    width -= 4
+    height -= 4
+
+    print width, height, last_h.get_shape()
+
     for i in range(layer_count - 1):
       width  = width*2
       height = height*2
 
       upsampled = tf.image.resize_bilinear(last_h, [width, height])
-      h_conv_1 = tf.concat(3, [layers.pop(), self.conv_layer(upsampled, last_filter_count, filter_count)])
+
+      width -= 2
+      height -= 2
+
+      old_layer = layers.pop()
+      old_shape = old_layer.get_shape().as_list()
+      old_w, old_h = (old_shape[1], old_shape[2])
+
+      cropped = tf.slice(old_layer, [0, (old_w - width) / 2, (old_h - height) / 2,0], [-1, width, height, -1])
+      h_conv_1 = tf.concat(3, [cropped, self.conv_layer(upsampled, last_filter_count, filter_count)])
       h_conv_2 = self.conv_layer(h_conv_1, last_filter_count, filter_count)
       h_conv_3 = self.conv_layer(h_conv_2, filter_count, filter_count)
 
@@ -61,11 +77,23 @@ class Model(object):
       filter_count = filter_count / 2
       last_h = h_conv_3
 
+      width -= 4
+      height -= 4
+
+      print width, height, last_h.get_shape()
+
     self._y = self.s_conv_layer(last_h, last_filter_count, num_output_channels)
 
-    cross_entropy = -tf.reduce_sum(self._y_*tf.log(tf.clip_by_value(self._y,1e-10,1.0)))
+    width -= 2
+    height -= 2
 
-    difference = self._y_ - self._y
+    old_shape = self._y_.get_shape().as_list()
+    old_w, old_h = (old_shape[1], old_shape[2])
+    mask = tf.slice(self._y_, [0, (old_w - width) / 2, (old_h - height) / 2,0], [-1, width, height, -1])
+
+    cross_entropy = -tf.reduce_sum(mask*tf.log(tf.clip_by_value(self._y,1e-10,1.0)))
+
+    difference = mask - self._y
     correct_prediction = tf.less(tf.abs(difference), 0.5)
     self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
     error_sq = tf.reduce_mean(tf.square(difference))
@@ -101,10 +129,10 @@ class Model(object):
     return tf.Variable(initial)
 
   def conv2d(self, x, W):
-    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding="SAME")
+    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding="VALID")
 
   def conv2d_transpose(self, x, W, output_shape):
-    return tf.nn.conv2d_transpose(x, W, output_shape=output_shape, strides=[1, 2, 2, 1], padding="SAME")
+    return tf.nn.conv2d_transpose(x, W, output_shape=output_shape, strides=[1, 2, 2, 1], padding="VALID")
 
   def max_pool_2x2(self, x):
     return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')

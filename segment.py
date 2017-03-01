@@ -2,7 +2,7 @@ from load_data import read_data_sets
 import tensorflow as tf
 import os.path
 import argparse
-from model import *
+from model2 import *
 from PIL import Image
 import scipy.misc
 import numpy as np
@@ -29,7 +29,7 @@ num_output_layers = 1
 LEVEL = args.start_layer
 OUTLEVEL = args.out_level
 
-model = Model(args.width, args.height, num_input_layers, num_output_layers, args.filter_count, args.layer_count, 0)
+model = Model(args.width, args.height, num_input_layers, num_output_layers, args.filter_count, args.layer_count, 1e-5)
 
 saver = tf.train.Saver()
 sess = tf.Session()
@@ -90,8 +90,9 @@ for root, dirnames, filenames in os.walk(indir):
           out_im = np.array(Image.fromarray(o).resize((width/(2**(OUTLEVEL-LEVEL)), height/(2**(OUTLEVEL-LEVEL))), Image.ANTIALIAS))
           outimage[y/(2**(OUTLEVEL-LEVEL)):(y+height)/(2**(OUTLEVEL-LEVEL)), x/(2**(OUTLEVEL-LEVEL)):(x+width)/(2**(OUTLEVEL-LEVEL))] += out_im
 
-    scipy.misc.imsave(outfile + '_Output.tif', outimage)
-    scipy.misc.imsave(outfile + '_Output_Thr.jpg', np.where(outimage > 128, 255, 0))
+      scipy.misc.imsave(outfile + '_Output.tif', outimage)
+      scipy.misc.imsave(outfile + '_Output_Thr.jpg', np.where(outimage > 128, 255, 0))
+      print i*1.0/(w / width / scale)
 
 
 def im(image, i, j):
@@ -102,5 +103,8 @@ def im(image, i, j):
   im3 = np.array(image.read_region((x*(2**LEVEL) - (width*15/2)*(2**LEVEL), y*(2**LEVEL) - (height*15/2)*(2**LEVEL)), LEVEL+4, (width, height)))[:,:,0:3]
   return np.dstack((im1, im2, im3))
 
-def show(image, layer):
+def show(image, i=0):
+  Image.fromarray(image[0,:,:,i]/np.max(image[0,:,:,i])*255).show()
+
+def showlayer(image, layer):
   Image.fromarray(image[:,:,layer*3:layer*3+3]).show()

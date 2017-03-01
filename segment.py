@@ -95,7 +95,7 @@ for root, dirnames, filenames in os.walk(indir):
           out_im = np.array(Image.fromarray(o).resize((w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL))), Image.ANTIALIAS))
           offset_x = (width-w)/2/(2**(OUTLEVEL-LEVEL))
           offset_y = (height-h)/2/(2**(OUTLEVEL-LEVEL))
-          outimage[y/(2**(OUTLEVEL-LEVEL))+offset_y:(y+height)/(2**(OUTLEVEL-LEVEL))+offset_y, x/(2**(OUTLEVEL-LEVEL))+offset_x:(x+width)/(2**(OUTLEVEL-LEVEL))+offset_x] += out_im
+          outimage[y/(2**(OUTLEVEL-LEVEL))+offset_y:(y+h)/(2**(OUTLEVEL-LEVEL))+offset_y, x/(2**(OUTLEVEL-LEVEL))+offset_x:(x+w)/(2**(OUTLEVEL-LEVEL))+offset_x] += out_im
 
       print i*1.0/(w / width / scale)
 

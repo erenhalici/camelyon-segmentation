@@ -93,7 +93,7 @@ for root, dirnames, filenames in os.walk(indir):
           new_w, new_h = o.shape[1], o.shape[2]
           o = (o.reshape(new_w, new_h) * 255.0).astype(np.uint8)
           out_im = np.array(Image.fromarray(o).resize((new_w/(2**(OUTLEVEL-LEVEL)), new_h/(2**(OUTLEVEL-LEVEL))), Image.ANTIALIAS))
-          offset_x = (width_h-new_w)/2/(2**(OUTLEVEL-LEVEL))
+          offset_x = (width-new_w)/2/(2**(OUTLEVEL-LEVEL))
           offset_y = (height-new_h)/2/(2**(OUTLEVEL-LEVEL))
           outimage[y/(2**(OUTLEVEL-LEVEL))+offset_y:(y+new_h)/(2**(OUTLEVEL-LEVEL))+offset_y, x/(2**(OUTLEVEL-LEVEL))+offset_x:(x+new_w)/(2**(OUTLEVEL-LEVEL))+offset_x] += out_im
 

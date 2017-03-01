@@ -90,12 +90,12 @@ for root, dirnames, filenames in os.walk(indir):
           im = im1
 
           o = sess.run(model.y, feed_dict={model.x_image: [im]})
-          w, h = o.shape[1], o.shape[2]
-          o = (o.reshape(w, h) * 255.0).astype(np.uint8)
-          out_im = np.array(Image.fromarray(o).resize((w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL))), Image.ANTIALIAS))
-          offset_x = (width-w)/2/(2**(OUTLEVEL-LEVEL))
-          offset_y = (height-h)/2/(2**(OUTLEVEL-LEVEL))
-          outimage[y/(2**(OUTLEVEL-LEVEL))+offset_y:(y+h)/(2**(OUTLEVEL-LEVEL))+offset_y, x/(2**(OUTLEVEL-LEVEL))+offset_x:(x+w)/(2**(OUTLEVEL-LEVEL))+offset_x] += out_im
+          new_w, new_h = o.shape[1], o.shape[2]
+          o = (o.reshape(new_w, new_h) * 255.0).astype(np.uint8)
+          out_im = np.array(Image.fromarray(o).resize((new_w/(2**(OUTLEVEL-LEVEL)), new_h/(2**(OUTLEVEL-LEVEL))), Image.ANTIALIAS))
+          offset_x = (width_h-new_w)/2/(2**(OUTLEVEL-LEVEL))
+          offset_y = (height-new_h)/2/(2**(OUTLEVEL-LEVEL))
+          outimage[y/(2**(OUTLEVEL-LEVEL))+offset_y:(y+new_h)/(2**(OUTLEVEL-LEVEL))+offset_y, x/(2**(OUTLEVEL-LEVEL))+offset_x:(x+new_w)/(2**(OUTLEVEL-LEVEL))+offset_x] += out_im
 
       print i*1.0/(w / width / scale)
 

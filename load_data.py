@@ -62,11 +62,12 @@ class DataSet(object):
     w = self._width
     h = self._height
 
-    im1 = np.array(image.read_region((i, j), LEVEL, (w, h)))[:,:,0:3]
-    im2 = np.array(image.read_region((i - (w*3/2)*(2**LEVEL), j - (h*3/2)*(2**LEVEL)), LEVEL+2, (w, h)))[:,:,0:3]
-    im3 = np.array(image.read_region((i - (w*15/2)*(2**LEVEL), j - (h*15/2)*(2**LEVEL)), LEVEL+4, (w, h)))[:,:,0:3]
+    im = np.array(image.read_region((i, j), LEVEL, (w, h)))[:,:,0:3]
+    # im1 = np.array(image.read_region((i, j), LEVEL, (w, h)))[:,:,0:3]
+    # im2 = np.array(image.read_region((i - (w*3/2)*(2**LEVEL), j - (h*3/2)*(2**LEVEL)), LEVEL+2, (w, h)))[:,:,0:3]
+    # im3 = np.array(image.read_region((i - (w*15/2)*(2**LEVEL), j - (h*15/2)*(2**LEVEL)), LEVEL+4, (w, h)))[:,:,0:3]
 
-    im = np.dstack((im1, im2, im3))
+    # im = np.dstack((im1, im2, im3))
 
     return self.augment_image(im, k)
   def load_outimage(self, image_data):

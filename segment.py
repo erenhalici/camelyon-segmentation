@@ -23,7 +23,7 @@ parser.add_argument('--out-level', default=4, type=int, help='Output level (defa
 
 args = parser.parse_args()
 
-num_input_layers = 9
+num_input_layers = 3
 num_output_layers = 1
 
 LEVEL = args.start_layer
@@ -84,17 +84,23 @@ for root, dirnames, filenames in os.walk(indir):
         im1 = np.array(image.read_region((x*(2**LEVEL), y*(2**LEVEL)), LEVEL, (width, height)))[:,:,0:3]
 
         if filter_image(im1, width, height):
-          im2 = np.array(image.read_region((x*(2**LEVEL) - (width*3/2)*(2**LEVEL),  y*(2**LEVEL) - (height*3/2)*(2**LEVEL)),  LEVEL+2, (width, height)))[:,:,0:3]
-          im3 = np.array(image.read_region((x*(2**LEVEL) - (width*15/2)*(2**LEVEL), y*(2**LEVEL) - (height*15/2)*(2**LEVEL)), LEVEL+4, (width, height)))[:,:,0:3]
-          im = np.dstack((im1, im2, im3))
+          # im2 = np.array(image.read_region((x*(2**LEVEL) - (width*3/2)*(2**LEVEL),  y*(2**LEVEL) - (height*3/2)*(2**LEVEL)),  LEVEL+2, (width, height)))[:,:,0:3]
+          # im3 = np.array(image.read_region((x*(2**LEVEL) - (width*15/2)*(2**LEVEL), y*(2**LEVEL) - (height*15/2)*(2**LEVEL)), LEVEL+4, (width, height)))[:,:,0:3]
+          # im = np.dstack((im1, im2, im3))
+          im = im1
 
-          o = (sess.run(model.y, feed_dict={model.x_image: [im]}).reshape(width, height) * 255.0).astype(np.uint8)
-          out_im = np.array(Image.fromarray(o).resize((width/(2**(OUTLEVEL-LEVEL)), height/(2**(OUTLEVEL-LEVEL))), Image.ANTIALIAS))
-          outimage[y/(2**(OUTLEVEL-LEVEL)):(y+height)/(2**(OUTLEVEL-LEVEL)), x/(2**(OUTLEVEL-LEVEL)):(x+width)/(2**(OUTLEVEL-LEVEL))] += out_im
+          o = sess.run(model.y, feed_dict={model.x_image: [im]})
+          w, h = o.shape[1], o.shape[2]
+          o = (o.reshape(w, h) * 255.0).astype(np.uint8)
+          out_im = np.array(Image.fromarray(o).resize((w/(2**(OUTLEVEL-LEVEL)), h/(2**(OUTLEVEL-LEVEL))), Image.ANTIALIAS))
+          offset_x = (width-w)/2/(2**(OUTLEVEL-LEVEL))
+          offset_y = (height-h)/2/(2**(OUTLEVEL-LEVEL))
+          outimage[y/(2**(OUTLEVEL-LEVEL))+offset_y:(y+height)/(2**(OUTLEVEL-LEVEL))+offset_y, x/(2**(OUTLEVEL-LEVEL))+offset_x:(x+width)/(2**(OUTLEVEL-LEVEL))+offset_x] += out_im
 
-      scipy.misc.imsave(outfile + '_Output.tif', outimage)
-      scipy.misc.imsave(outfile + '_Output_Thr.jpg', np.where(outimage > 128, 255, 0))
       print i*1.0/(w / width / scale)
+
+    scipy.misc.imsave(outfile + '_Output.tif', outimage)
+    scipy.misc.imsave(outfile + '_Output_Thr.jpg', np.where(outimage > 128, 255, 0))
 
 
 def im(image, i, j):

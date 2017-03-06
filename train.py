@@ -26,11 +26,11 @@ args = parser.parse_args()
 num_input_layers = 3
 num_output_layers = 1
 
+model = Model(args.width, args.height, num_input_layers, num_output_layers, args.filter_count, args.layer_count, args.learning_rate)
+
 data_set = read_data_sets(args.width, args.height, args.start_layer, args.data_dir, args.start_step*args.batch_size)
 
 print("Training Data Size: {}".format(data_set.train.num_samples))
-
-model = Model(args.width, args.height, num_input_layers, num_output_layers, args.filter_count, args.layer_count, args.learning_rate)
 
 saver = tf.train.Saver()
 sess = tf.Session()

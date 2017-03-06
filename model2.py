@@ -57,16 +57,17 @@ class Model(object):
 
       upsampled = tf.image.resize_bilinear(last_h, [width, height])
 
-      width -= 2
-      height -= 2
+      # width -= 2
+      # height -= 2
 
       old_layer = layers.pop()
       old_shape = old_layer.get_shape().as_list()
       old_w, old_h = (old_shape[1], old_shape[2])
 
       cropped = tf.slice(old_layer, [0, (old_w - width) / 2, (old_h - height) / 2,0], [-1, width, height, -1])
-      h_conv_1 = tf.concat(3, [cropped, self.conv_layer(upsampled, last_filter_count, filter_count)])
-      h_conv_2 = self.conv_layer(h_conv_1, last_filter_count, filter_count)
+      # h_conv_1 = tf.concat(3, [cropped, self.conv_layer(upsampled, last_filter_count, filter_count)])
+      h_conv_1 = tf.concat(3, [cropped, upsampled])
+      h_conv_2 = self.conv_layer(h_conv_1, last_filter_count + filter_count, filter_count)
       h_conv_3 = self.conv_layer(h_conv_2, filter_count, filter_count)
 
       h_list.append(h_conv_1)

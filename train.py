@@ -1,4 +1,4 @@
-from load_data import read_data_sets
+from load_data2 import read_data_sets
 import tensorflow as tf
 import os.path
 import argparse

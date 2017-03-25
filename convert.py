@@ -13,6 +13,7 @@ parser.add_argument('--data-dir', default='data/input/', help='Data folder (defa
 parser.add_argument('--width',  default=128, type=int, help='Width of Input Patches',  dest='width')
 parser.add_argument('--height', default=128, type=int, help='Height of Input Patches', dest='height')
 parser.add_argument('--start-layer', default=2, type=int, help='Lowest layer (default: 2)', dest='start_layer')
+parser.add_argument('--stride', default=0, type=int, help='Stride (default: width)', dest='stride')
 
 args = parser.parse_args()
 
@@ -31,6 +32,11 @@ def filter_image(image, width, height):
 width  = args.width
 height = args.height
 
+stride = args.stride
+
+if stride == 0:
+  stride = width
+
 indir = args.data_dir
 imagedir = indir+'images/'
 maskdir = indir+'masks/'
@@ -40,34 +46,35 @@ outdir = args.output_dir
 for root, dirnames, filenames in os.walk(imagedir):
   for filename in fnmatch.filter(filenames, '*.tif'):
     imagefile = imagedir + filename[:-4] + '.tif'
-    maskfile = maskdir + filename[:-4] + '_Mask.tif'
+    # maskfile = maskdir + filename[:-4] + '_Mask.tif'
     print imagefile
 
     infile = indir + imagefile
 
     image = openslide.OpenSlide(imagefile)
-    mask  = openslide.OpenSlide(maskfile)
+    # mask  = openslide.OpenSlide(maskfile)
     (w, h) = image.level_dimensions[LEVEL]
 
     if not os.path.exists(outdir + filename[:-4]):
       os.makedirs(outdir + filename[:-4])
 
-    for i in range(w / width):
-      for j in range(h / height):
-        x = i*width
-        y = j*height
+    for i in range(w / stride):
+      for j in range(h / stride):
+        x = i*stride
+        y = j*stride
 
         im = np.array(image.read_region((x*(2**LEVEL), y*(2**LEVEL)), LEVEL, (width, height)))[:,:,0:3]
 
         if filter_image(im, width, height):
           im = np.array(image.read_region((x*(2**LEVEL), y*(2**LEVEL)), 0, (width*(2**LEVEL), height*(2**LEVEL))).resize((width,height),Image.ANTIALIAS))[:,:,0:3]
-          m = np.array(mask.read_region((x*(2**LEVEL), y*(2**LEVEL)), LEVEL, (width, height)))[:,:,0]
+          # m = np.zeros((width, height))
+          # m = np.array(mask.read_region((x*(2**LEVEL), y*(2**LEVEL)), LEVEL, (width, height)))[:,:,0]
 
-          if np.sum(m) > 0.0:
-            m = np.array(mask.read_region((x*(2**LEVEL), y*(2**LEVEL)), 0, (width*(2**LEVEL), height*(2**LEVEL))).resize((width,height),Image.ANTIALIAS))[:,:,0]
-
+          #if np.sum(m) > 0.0:
+          #  m = np.array(mask.read_region((x*(2**LEVEL), y*(2**LEVEL)), 0, (width*(2**LEVEL), height*(2**LEVEL))).resize((width,height),Image.ANTIALIAS))[:,:,0]
+          
           outfile = outdir + filename[:-4] + '/' + str(i) + '_' + str(j)
           scipy.misc.imsave(outfile + '.jpg', im)
-          scipy.misc.imsave(outfile + '_Mask.jpg', m)
+          # scipy.misc.imsave(outfile + '_Mask.jpg', m)
 
       print i*1.0/(w / width)

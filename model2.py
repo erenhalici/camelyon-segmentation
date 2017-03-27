@@ -96,9 +96,27 @@ class Model(object):
     cross_entropy = -tf.reduce_sum(mask*tf.log(tf.clip_by_value(self._y,1e-10,1.0)))
 
     difference = mask - self._y
+    error_sq = tf.reduce_mean(tf.square(difference))
+
+
+    mask_positive = tf.greater_equal(mask, 0.5)
+    mask_negative = tf.logical_not(mask_positive)
+    y_positive = tf.greater_equal(self._y, 0.5)
+    y_negative = tf.logical_not(y_positive)
+
+    tp = tf.logical_and(mask_positive, y_positive)
+    tn = tf.logical_and(mask_negative, y_negative)
+    fp = tf.logical_and(mask_negative, y_positive)
+    fn = tf.logical_and(mask_positive, y_negative)
+
+    self._tp = tf.reduce_mean(tf.cast(tp, "float"))
+    self._tn = tf.reduce_mean(tf.cast(tn, "float"))
+    self._fp = tf.reduce_mean(tf.cast(fp, "float"))
+    self._fn = tf.reduce_mean(tf.cast(fn, "float"))
+
     correct_prediction = tf.less(tf.abs(difference), 0.5)
     self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-    error_sq = tf.reduce_mean(tf.square(difference))
+
 
     self._train_step = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-4).minimize(error_sq)
     self._error = tf.sqrt(error_sq)
@@ -119,8 +137,20 @@ class Model(object):
   def accuracy(self):
       return self._accuracy
   @property
+  def tp(self):
+    return self._tp
+  @property
+  def tn(self):
+    return self._tn
+  @property
+  def fp(self):
+    return self._fp
+  @property
+  def fn(self):
+    return self._fn
+  @property
   def error(self):
-      return self._error
+    return self._error
 
   def weight_variable(self, shape):
     initial = tf.truncated_normal(shape, stddev=0.04)

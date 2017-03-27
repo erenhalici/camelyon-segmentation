@@ -54,13 +54,13 @@ for root, dirnames, filenames in os.walk(indir):
   for maskfile in files:
     imagefile = maskfile[:-9]
 
-    print str(count) + '/' + str(len(files))
+    # print str(count) + '/' + str(len(files))
     count += 1
 
     image = np.array(Image.open(root + '/' + imagefile + '.jpg'))
     mask = np.array(Image.open(root + '/' + maskfile)).reshape((args.width, args.height, 1))
     ptp, ptn, pfp, pfn = sess.run([model.tp, model.tn, model.fp, model.fn] , feed_dict={model.x_image: [image], model.y_: [mask]})
-    print ptp, ptn, pfp, pfn
+    # print ptp, ptn, pfp, pfn
     ftp += ptp
     ftn += ptn
     ffp += pfp
@@ -68,7 +68,7 @@ for root, dirnames, filenames in os.walk(indir):
 
   if count == 0: continue
   print "For File: " + root.split('/')[-1]
-  print "TP: " + str(ftp/count) + "TN: " + str(ftn/count) + "FP: " + str(ffp/count) + "FN: " + str(ffn/count)
+  print "TP: " + str(ftp/count) + " TN: " + str(ftn/count) + " FP: " + str(ffp/count) + " FN: " + str(ffn/count)
 
   total_count += count
   gtp += ftp
@@ -77,4 +77,7 @@ for root, dirnames, filenames in os.walk(indir):
   gfn += ffn
 
 print "GLOBAL VALUES FOR: " + args.model_file
-print "TP: " + str(gtp/total_count) + "TN: " + str(gtn/total_count) + "FP: " + str(gfp/total_count) + "FN: " + str(gfn/total_count)
+print "TP: " + str(gtp/total_count) + " TN: " + str(gtn/total_count) + " FP: " + str(gfp/total_count) + " FN: " + str(gfn/total_count)
+print "Accuracy: " + str((gtp+gtn)/(gtp+gtn+gfp+gfn))
+print "Sensitivity: " + str(gtp/(gtp+gfn))
+print "Specificity: " + str(gtn/(gtn+gfp))
